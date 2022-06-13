@@ -1,8 +1,8 @@
 package animals.service;
 
 import animals.localization.LanguageRule;
-import animals.localization.LanguagesRules_en;
-import animals.localization.LanguagesRules_eo;
+import animals.localization.LanguagesRulesEn;
+import animals.localization.LanguagesRulesEo;
 import animals.model.Node;
 
 import java.util.Deque;
@@ -23,19 +23,17 @@ public class KnowledgeTreeService {
     public static final String MINIMUM_DEPTH = getLocalString("minimum");
     public static final String AVERAGE_DEPTH = getLocalString("average");
 
-    LanguageRule lr = getLanguageRule();
+    public LanguageRule lr = getLanguageRule();
 
     private LanguageRule getLanguageRule() {
-        return System.getProperty("user.language").equals("eo") ? new LanguagesRules_eo() : new LanguagesRules_en();
+        return System.getProperty("user.language").equals("eo") ? new LanguagesRulesEo() : new LanguagesRulesEn();
     }
 
     public Map<String, List<String>> getAnimals(Node root) {
-        animals.clear();
-        collectAnimals(root, new LinkedList<>());
+        Map<String, List<String>> animals = new HashMap<>();
+        collectAnimals(root, new LinkedList<>(), animals);
         return animals;
     }
-
-    private final Map<String, List<String>> animals = new HashMap<>();
 
     public void printAllAnimals(Node root) {
         System.out.println(getLocalString("list.animals"));
@@ -49,7 +47,7 @@ public class KnowledgeTreeService {
     public void getAllFactsAboutAnimal(String animal, Node root) {
         String correctAnimal = lr.getAnimal(animal);
         final var animals = getAnimals(root);
-        if (animals.containsKey(correctAnimal) && animals.get(animal) != null) {
+        if (animals.containsKey(correctAnimal)) {
             System.out.println(getLocalString("search.facts") + animal.replaceFirst("an? |the ", "") + ": ");
             final var facts = animals.get(correctAnimal);
             facts.forEach(fact -> System.out.println(" - " + fact));
@@ -89,17 +87,17 @@ public class KnowledgeTreeService {
         System.out.printf("%-30s %.1f%n", AVERAGE_DEPTH, stats.getAverage());
     }
 
-    private void collectAnimals(final Node node, final Deque<String> facts) {
+    private void collectAnimals(final Node node, final Deque<String> facts, Map<String, List<String>> animals) {
         if (node.isLeaf()) {
             animals.put(node.getData(), List.copyOf(facts));
             return;
         }
         final var statement = node.getData();
         facts.add(lr.getPositiveFactFromQuestion(statement));
-        collectAnimals(node.getYes(), facts);
+        collectAnimals(node.getYes(), facts, animals);
         facts.removeLast();
         facts.add(lr.getNegativeFactFromQuestion(statement));
-        collectAnimals(node.getNo(), facts);
+        collectAnimals(node.getNo(), facts, animals);
         facts.removeLast();
     }
 }

@@ -7,27 +7,16 @@ import static animals.service.ResourceBundleService.getLocalString;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Node {
-    private boolean isLeaf;
-    public String data;
-    public Node yes;
-    public Node no;
+
+    private String data;
+    private Node yes;
+    private Node no;
 
     public Node(String data) {
         this.data = data;
-        yes = null;
-        no = null;
-        isLeaf = true;
     }
 
     public Node() {
-    }
-
-    public boolean isLeaf() {
-        return isLeaf;
-    }
-
-    public void setLeaf(boolean leaf) {
-        isLeaf = leaf;
     }
 
     public String getData() {
@@ -42,11 +31,28 @@ public class Node {
         return no;
     }
 
+    public void setData(String data) {
+        this.data = data;
+    }
+
+    public void setYes(Node yes) {
+        this.yes = yes;
+    }
+
+    public void setNo(Node no) {
+        this.no = no;
+    }
+
     @JsonIgnore
     public String askQ() {
-        if (isLeaf) {
+        if (isLeaf()) {
             return getLocalString("is.it") + data + "?";
         }
         return data;
+    }
+
+    @JsonIgnore
+    public boolean isLeaf() {
+        return no == null && yes == null;
     }
 }

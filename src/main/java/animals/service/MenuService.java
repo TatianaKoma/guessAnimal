@@ -1,6 +1,5 @@
 package animals.service;
 
-import java.util.ResourceBundle;
 import static animals.service.ResourceBundleService.getLocalString;
 
 public enum MenuService {
@@ -37,8 +36,7 @@ public enum MenuService {
     }
 
     public static String getMenuStr() {
-        ResourceBundle bundle = ResourceBundle.getBundle("application");
-        StringBuilder str = new StringBuilder(bundle.getString("what.do"));
+        StringBuilder str = new StringBuilder(getLocalString("what.do"));
         for (MenuService item : MenuService.values()) {
             if (item.isUndefined()) {
                 continue;
@@ -46,7 +44,7 @@ public enum MenuService {
             str.append(System.lineSeparator());
             str.append(item.getCommand()).append(") ").append(item.getDescription());
         }
-        str.append("\n").append(bundle.getString("choice"));
+        str.append("\n").append(getLocalString("choice"));
         return str.toString();
     }
 

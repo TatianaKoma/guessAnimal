@@ -2,7 +2,7 @@ package animals.localization;
 
 import java.util.Scanner;
 
-public class LanguagesRules_eo implements LanguageRule {
+public class LanguagesRulesEo implements LanguageRule {
     private static final Scanner SCANNER = new Scanner(System.in);
 
     @Override

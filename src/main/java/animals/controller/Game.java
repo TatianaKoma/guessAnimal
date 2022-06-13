@@ -1,48 +1,44 @@
 package animals.controller;
 
 import animals.localization.LanguageRule;
-import animals.localization.LanguagesRules_en;
-import animals.localization.LanguagesRules_eo;
+import animals.localization.LanguagesRulesEn;
+import animals.localization.LanguagesRulesEo;
 import animals.model.Node;
 import animals.service.FileService;
 import animals.service.KnowledgeTreeService;
 import animals.service.MenuService;
+import animals.service.ResourceBundleService;
 
 import java.time.LocalTime;
-import java.util.ResourceBundle;
 import java.util.Scanner;
 
 import static animals.service.ResourceBundleService.getLocalString;
 
 public class Game {
-    public static final String FILE_LOCATION_NAME = getFileLocationName();
     private static final Scanner SCANNER = new Scanner(System.in);
-    private static final LocalTime MORNING_START = LocalTime.of(5, 1);
-    private static final LocalTime MORNING_END = LocalTime.of(12, 0);
-    private static final LocalTime DAY_START = LocalTime.of(12, 1);
-    private static final LocalTime DAY_END = LocalTime.of(18, 0);
+    private static final LocalTime MORNING_START = LocalTime.of(5, 0);
+    private static final LocalTime DAY_END = LocalTime.of(17, 59);
 
-    FileService fs = new FileService();
-    KnowledgeTreeService kts = new KnowledgeTreeService();
-    LanguageRule lr = getLanguageRule();
+    public FileService fs;
+    public KnowledgeTreeService kts = new KnowledgeTreeService();
+    public LanguageRule lr = getLanguageRule();
 
-    private LanguageRule getLanguageRule() {
-        return System.getProperty("user.language").equals("eo") ? new LanguagesRules_eo() : new LanguagesRules_en();
+    public Game(FileService fs) {
+        this.fs = fs;
     }
 
-    public void run(String type) {
-        String FILE_NAME = FILE_LOCATION_NAME + type;
-        System.out.println(checkTimeOfDay() + "\n");
+    private LanguageRule getLanguageRule() {
+        return System.getProperty("user.language").equals("eo") ? new LanguagesRulesEo() : new LanguagesRulesEn();
+    }
 
-        var exist = fs.checkFile(FILE_NAME);
-        Node root;
-        if (exist) {
-            root = fs.load(type, FILE_NAME);
-        } else {
+    public void run() {
+        System.out.println(getGreeting() + "\n");
+        Node root = fs.load();
+        if (root.getData() == null) {
             System.out.println(getLocalString("ask.favorite.animal"));
             String firstAnimal = lr.getAnimal(SCANNER.nextLine().toLowerCase().trim());
             root = new Node(firstAnimal);
-            fs.save(root, type, FILE_NAME);
+            fs.save(root);
         }
         System.out.println(getLocalString("welcome") + "\n");
         boolean quit = false;
@@ -51,7 +47,7 @@ public class Game {
             int choice = SCANNER.nextInt();
             SCANNER.nextLine();
             switch (MenuService.getInstance(choice)) {
-                case PLAY:
+                case PLAY -> {
                     do {
                         System.out.println(getLocalString("think"));
                         System.out.println(getLocalString("enter"));
@@ -59,32 +55,29 @@ public class Game {
                         play(root);
                         System.out.println(getLocalString("play.again"));
                     } while (askYesNo());
-                    fs.save(root, type, FILE_NAME);
-                    break;
-                case SHOW_LIST:
-                    kts.printAllAnimals(fs.load(type, FILE_NAME));
-                    break;
-                case SEARCH_ANIMAL:
+                    fs.save(root);
+                }
+                case SHOW_LIST -> kts.printAllAnimals(fs.load());
+                case SEARCH_ANIMAL -> {
                     System.out.println(getLocalString("enter.animal"));
                     String userAnimal = SCANNER.nextLine();
                     kts.getAllFactsAboutAnimal(userAnimal, root);
                     System.out.println();
-                    break;
-                case STATISTICS:
-                    kts.showStats(fs.load(type, FILE_NAME));
+                }
+                case STATISTICS -> {
+                    kts.showStats(fs.load());
                     System.out.println();
-                    break;
-                case KNOWLEDGE_TREE:
-                    kts.printTree(fs.load(type, FILE_NAME));
+                }
+                case KNOWLEDGE_TREE -> {
+                    kts.printTree(fs.load());
                     System.out.println();
-                    break;
-                case EXIT:
+                }
+                case EXIT -> {
                     quit = true;
                     SCANNER.close();
                     System.out.println(getLocalString("bye"));
-                    break;
-                case UNDEFINED:
-                    System.out.println(getLocalString("wrong"));
+                }
+                case UNDEFINED -> System.out.println(getLocalString("wrong"));
             }
         }
     }
@@ -114,16 +107,14 @@ public class Game {
                 String question = lr.getQuestion(positive);
                 Node secondNode = new Node(userNewAnimal);
                 if (!askYesNo()) {
-                    node.yes = new Node(node.getData());
-                    node.data = question;
-                    node.no = secondNode;
-                    node.setLeaf(false);
+                    node.setYes(new Node(node.getData()));
+                    node.setData(question);
+                    node.setNo(secondNode);
                     System.out.println(lr.getLearnedPhrase(learn1, learn2Neg, question));
                 } else {
-                    node.no = new Node(node.data);
-                    node.data = question;
-                    node.yes = secondNode;
-                    node.setLeaf(false);
+                    node.setNo(new Node(node.getData()));
+                    node.setData(question);
+                    node.setYes(secondNode);
                     System.out.println(lr.getLearnedPhrase(learn1Neg, learn2, question));
                 }
             }
@@ -131,32 +122,26 @@ public class Game {
     }
 
     public boolean askYesNo() {
-        final var bundle = ResourceBundle.getBundle("application");
         while (true) {
             String answer = SCANNER.nextLine().trim();
-            if (answer.matches(bundle.getString("pattern.yes"))) {
+            if (answer.matches(ResourceBundleService.PATTERN_YES)) {
                 return true;
             }
-            if (answer.matches(bundle.getString("pattern.no"))) {
+            if (answer.matches(ResourceBundleService.PATTERN_NO)) {
                 return false;
             }
-            System.out.println(bundle.getString("ask.again"));
+            System.out.println(getLocalString("ask.again"));
         }
     }
 
-    public String checkTimeOfDay() {
+    public String getGreeting() {
         LocalTime now = LocalTime.now();
-        if (now.isAfter(MORNING_START) && now.isBefore(MORNING_END)) {
+        if (now.isAfter(MORNING_START) && now.isBefore(LocalTime.NOON)) {
             return getLocalString("hi.morning");
-        } else if (now.isAfter(DAY_START) && now.isBefore(DAY_END)) {
+        } else if (now.isAfter(LocalTime.NOON) && now.isBefore(DAY_END)) {
             return getLocalString("hi.day");
         } else {
             return getLocalString("hi.evening");
         }
-    }
-
-    private static String getFileLocationName() {
-        String local = System.getProperty("user.language");
-        return local.equals("eo") ? "animals_eo." : "animals.";
     }
 }

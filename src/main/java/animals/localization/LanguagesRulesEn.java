@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-public class LanguagesRules_en implements LanguageRule {
+public class LanguagesRulesEn implements LanguageRule {
     private static final Pattern STATEMENT = Pattern.compile("it (can|has|is) .+");
     private static final Scanner SCANNER = new Scanner(System.in);
     private static final Map<String, String> POS_TO_NEG = Map.of("it can", "it can't",
