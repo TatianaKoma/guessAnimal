@@ -1,27 +1,10 @@
 package animals.localization;
 
-import java.util.Scanner;
-
 public class LanguagesRulesEo implements LanguageRule {
-    private static final Scanner SCANNER = new Scanner(System.in);
 
     @Override
     public String getAnimal(String animal) {
         return animal;
-    }
-
-    @Override
-    public String getStatement(String first, String second) {
-        while (true) {
-            System.out.printf("Precizu fakton kiu distingas %s de %s.%n" +
-                    "La frazo devas kontentigi unu el la jenaj ŝablonoj:%n" +
-                    "- Ĝi povas ...%n- Ĝi havas ...%n- Ĝi estas...%n", first, second);
-            String response = SCANNER.nextLine().toLowerCase().trim();
-            if (response.startsWith("ĝi ")) {
-                return response.replaceFirst("(.+)\\.+", "$1");
-            }
-            System.out.println("La ekzemploj de aserto:\nĜi povas flugi\nĜi havas kornojn\nĜi estas mamulo");
-        }
     }
 
     @Override
@@ -54,20 +37,20 @@ public class LanguagesRulesEo implements LanguageRule {
     }
 
     @Override
-    public String getPositiveFactFromQuestion(String str) {
-        if (str.startsWith("Ĉu ĝi"))
-            return str.replaceFirst("Ĉu ĝi", "Ĝi");
+    public String getPositiveFactFromQuestion(String question) {
+        if (question.startsWith("Ĉu ĝi"))
+            return question.replaceFirst("Ĉu ĝi", "Ĝi");
         else {
-            return str.replaceFirst("Ĉu ", "Ĝi");
+            return question.replaceFirst("Ĉu ", "Ĝi");
         }
     }
 
     @Override
-    public String getNegativeFactFromQuestion(String str) {
-        if (str.startsWith("Ĉu ĝi"))
-            return str.replaceFirst("Ĉu ĝi", "Ĝi ne");
+    public String getNegativeFactFromQuestion(String question) {
+        if (question.startsWith("Ĉu ĝi"))
+            return question.replaceFirst("Ĉu ĝi", "Ĝi ne");
         else {
-            return str.replaceFirst("Ĉu ", "Ĝi ne");
+            return question.replaceFirst("Ĉu ", "Ĝi ne");
         }
     }
 }

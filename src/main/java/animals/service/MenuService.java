@@ -36,16 +36,16 @@ public enum MenuService {
     }
 
     public static String getMenuStr() {
-        StringBuilder str = new StringBuilder(getLocalString("what.do"));
+        StringBuilder stringBuilder = new StringBuilder(getLocalString("what.do"));
         for (MenuService item : MenuService.values()) {
             if (item.isUndefined()) {
                 continue;
             }
-            str.append(System.lineSeparator());
-            str.append(item.getCommand()).append(") ").append(item.getDescription());
+            stringBuilder.append(System.lineSeparator());
+            stringBuilder.append(item.getCommand()).append(") ").append(item.getDescription());
         }
-        str.append("\n").append(getLocalString("choice"));
-        return str.toString();
+        stringBuilder.append("\n").append(getLocalString("choice"));
+        return stringBuilder.toString();
     }
 
     public boolean isUndefined() {

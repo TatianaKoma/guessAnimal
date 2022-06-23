@@ -10,8 +10,7 @@ public class XmlFileService extends FileService{
     }
 
     @Override
-    public String getFileName() {
-        String local = System.getProperty("user.language");
+    public String getFileType(String local) {
         return local.equals("eo") ? "animals_eo.xml" : "animals.xml";
     }
 }

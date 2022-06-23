@@ -3,8 +3,6 @@ package animals.localization;
 public interface LanguageRule {
     String getAnimal(String animal);
 
-    String getStatement(String first, String second);
-
     String getQuestion(String statement);
 
     String capitalize(String sentence);
@@ -15,8 +13,8 @@ public interface LanguageRule {
 
     String toNegative(String statement);
 
-    String getPositiveFactFromQuestion(String str);
+    String getPositiveFactFromQuestion(String question);
 
-    String getNegativeFactFromQuestion(String str);
+    String getNegativeFactFromQuestion(String question);
 
 }

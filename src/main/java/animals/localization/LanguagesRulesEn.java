@@ -1,12 +1,8 @@
 package animals.localization;
 
 import java.util.Map;
-import java.util.Scanner;
-import java.util.regex.Pattern;
 
 public class LanguagesRulesEn implements LanguageRule {
-    private static final Pattern STATEMENT = Pattern.compile("it (can|has|is) .+");
-    private static final Scanner SCANNER = new Scanner(System.in);
     private static final Map<String, String> POS_TO_NEG = Map.of("it can", "it can't",
             "it has", "it doesn't have", "it is", "it isn't");
 
@@ -18,21 +14,6 @@ public class LanguagesRulesEn implements LanguageRule {
             animal = animal.replaceFirst("(the )?", article);
         }
         return animal;
-    }
-
-    @Override
-    public String getStatement(String first, String second) {
-        while (true) {
-            System.out.printf("Specify a fact that distinguishes %s from %s.%n" +
-                    "The sentence should satisfy one of the following templates:%n" +
-                    "- It can ...%n- It has ...%n- It is a/an ...%n", first, second);
-            String response = SCANNER.nextLine().toLowerCase().trim();
-            if (STATEMENT.matcher(response).matches()) {
-                return response.replaceFirst("(.+)\\.+", "$1");
-            }
-            System.out.printf("The examples of a statement:%n" +
-                    " - It can fly%n - It has horn%n - It is a mammal%n");
-        }
     }
 
     @Override
@@ -72,29 +53,29 @@ public class LanguagesRulesEn implements LanguageRule {
     }
 
     @Override
-    public String getPositiveFactFromQuestion(String str) {
-        if (str.startsWith("Does it have")) {
-            str = str.replaceFirst("Does it have", "It has");
-            return str.substring(0, str.length() - 1) ;
-        } else if (str.startsWith("Can it")) {
-            str = str.replaceFirst("Can it", "It can");
-            return str.substring(0, str.length() - 1) ;
-        } else if(str.startsWith("Is it")) {
-            str = str.replaceFirst("Is it", "It is");
-            return str.substring(0, str.length() - 1) ;
+    public String getPositiveFactFromQuestion(String question) {
+        if (question.startsWith("Does it have")) {
+            question = question.replaceFirst("Does it have", "It has");
+            return question.substring(0, question.length() - 1);
+        } else if (question.startsWith("Can it")) {
+            question = question.replaceFirst("Can it", "It can");
+            return question.substring(0, question.length() - 1);
+        } else if (question.startsWith("Is it")) {
+            question = question.replaceFirst("Is it", "It is");
+            return question.substring(0, question.length() - 1);
         }
-        return str;
+        return question;
     }
 
     @Override
-    public String getNegativeFactFromQuestion(String str) {
-        if (str.startsWith("Does it have")) {
-            str = str.replaceFirst("Does it have", "It doesn't have");
-        } else if (str.startsWith("Can it")) {
-            str = str.replaceFirst("Can it", "It can't");
+    public String getNegativeFactFromQuestion(String question) {
+        if (question.startsWith("Does it have")) {
+            question = question.replaceFirst("Does it have", "It doesn't have");
+        } else if (question.startsWith("Can it")) {
+            question = question.replaceFirst("Can it", "It can't");
         } else {
-            str = str.replaceFirst("Is it", "It isn't");
+            question = question.replaceFirst("Is it", "It isn't");
         }
-        return str.substring(0, str.length() - 1) + ".";
+        return question.substring(0, question.length() - 1) + ".";
     }
 }

@@ -8,24 +8,24 @@ import java.io.IOException;
 
 public abstract class FileService {
 
-    public void save(Node root) {
+    public void save(Node root) throws IOException {
         String fileName = getFileName();
-        ObjectMapper objectMapper = getObjectMapper();
         try {
+            ObjectMapper objectMapper = getObjectMapper();
             objectMapper
                     .writerWithDefaultPrettyPrinter()
                     .writeValue(new File(fileName), root);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IOException("Not able to save file", e);
         }
     }
 
     public Node load() {
         String fileName = getFileName();
         Node root = new Node();
-        ObjectMapper objectMapper = getObjectMapper();
         if (checkFile()) {
             try {
+                ObjectMapper objectMapper = getObjectMapper();
                 root = objectMapper.readValue(new File(fileName), Node.class);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -39,7 +39,16 @@ public abstract class FileService {
         return file.exists() && file.length() > 0;
     }
 
+    public String getFileName() {
+        String local = getLocal();
+        return getFileType(local);
+    }
+
+    private String getLocal() {
+        return System.getProperty("user.language");
+    }
+
     public abstract ObjectMapper getObjectMapper();
 
-    public abstract String getFileName();
+    public abstract String getFileType(String local);
 }

@@ -1,44 +1,39 @@
 package animals.controller;
 
-import animals.localization.LanguageRule;
-import animals.localization.LanguagesRulesEn;
-import animals.localization.LanguagesRulesEo;
 import animals.model.Node;
 import animals.service.FileService;
 import animals.service.KnowledgeTreeService;
 import animals.service.MenuService;
 import animals.service.ResourceBundleService;
 
+import java.io.IOException;
 import java.time.LocalTime;
 import java.util.Scanner;
 
 import static animals.service.ResourceBundleService.getLocalString;
 
 public class Game {
+
     private static final Scanner SCANNER = new Scanner(System.in);
     private static final LocalTime MORNING_START = LocalTime.of(5, 0);
     private static final LocalTime DAY_END = LocalTime.of(17, 59);
 
-    public FileService fs;
-    public KnowledgeTreeService kts = new KnowledgeTreeService();
-    public LanguageRule lr = getLanguageRule();
+    public FileService fileService;
+    public KnowledgeTreeService knowledgeTreeService;
 
-    public Game(FileService fs) {
-        this.fs = fs;
+    public Game(FileService fileService, KnowledgeTreeService knowledgeTreeService) {
+        this.fileService = fileService;
+        this.knowledgeTreeService = knowledgeTreeService;
     }
 
-    private LanguageRule getLanguageRule() {
-        return System.getProperty("user.language").equals("eo") ? new LanguagesRulesEo() : new LanguagesRulesEn();
-    }
-
-    public void run() {
+    public void run() throws IOException {
         System.out.println(getGreeting() + "\n");
-        Node root = fs.load();
+        Node root = fileService.load();
         if (root.getData() == null) {
             System.out.println(getLocalString("ask.favorite.animal"));
-            String firstAnimal = lr.getAnimal(SCANNER.nextLine().toLowerCase().trim());
+            String firstAnimal = knowledgeTreeService.getLanguageRule().getAnimal(SCANNER.nextLine().toLowerCase().trim());
             root = new Node(firstAnimal);
-            fs.save(root);
+            fileService.save(root);
         }
         System.out.println(getLocalString("welcome") + "\n");
         boolean quit = false;
@@ -55,21 +50,21 @@ public class Game {
                         play(root);
                         System.out.println(getLocalString("play.again"));
                     } while (askYesNo());
-                    fs.save(root);
+                    fileService.save(root);
                 }
-                case SHOW_LIST -> kts.printAllAnimals(fs.load());
+                case SHOW_LIST -> knowledgeTreeService.printAllAnimals(root);
                 case SEARCH_ANIMAL -> {
                     System.out.println(getLocalString("enter.animal"));
                     String userAnimal = SCANNER.nextLine();
-                    kts.getAllFactsAboutAnimal(userAnimal, root);
+                    knowledgeTreeService.getAllFactsAboutAnimal(userAnimal, root);
                     System.out.println();
                 }
                 case STATISTICS -> {
-                    kts.showStats(fs.load());
+                    knowledgeTreeService.showStats(fileService.load());
                     System.out.println();
                 }
                 case KNOWLEDGE_TREE -> {
-                    kts.printTree(fs.load());
+                    knowledgeTreeService.printTree(fileService.load());
                     System.out.println();
                 }
                 case EXIT -> {
@@ -94,28 +89,27 @@ public class Game {
             if (!askYesNo()) {
                 String firstAnimal = node.getData();
                 System.out.println(getLocalString("give.up"));
-                String userNewAnimal = lr.getAnimal(SCANNER.nextLine().strip().toLowerCase());
-
-                String positive = lr.getStatement(firstAnimal, userNewAnimal);
-                String negative = lr.toNegative(positive);
+                String userNewAnimal = knowledgeTreeService.getLanguageRule().getAnimal(SCANNER.nextLine().strip().toLowerCase());
+                String positive = getStatement(firstAnimal, userNewAnimal);
+                String negative = knowledgeTreeService.getLanguageRule().toNegative(positive);
                 System.out.println(getLocalString("is.correct") + userNewAnimal + "?");
 
-                String learn1 = lr.toAnimalFact(positive, firstAnimal);
-                String learn1Neg = lr.toAnimalFact(negative, firstAnimal);
-                String learn2 = lr.toAnimalFact(positive, userNewAnimal);
-                String learn2Neg = lr.toAnimalFact(negative, userNewAnimal);
-                String question = lr.getQuestion(positive);
+                String learn1 = knowledgeTreeService.getLanguageRule().toAnimalFact(positive, firstAnimal);
+                String learn1Neg = knowledgeTreeService.getLanguageRule().toAnimalFact(negative, firstAnimal);
+                String learn2 = knowledgeTreeService.getLanguageRule().toAnimalFact(positive, userNewAnimal);
+                String learn2Neg = knowledgeTreeService.getLanguageRule().toAnimalFact(negative, userNewAnimal);
+                String question = knowledgeTreeService.getLanguageRule().getQuestion(positive);
                 Node secondNode = new Node(userNewAnimal);
                 if (!askYesNo()) {
                     node.setYes(new Node(node.getData()));
                     node.setData(question);
                     node.setNo(secondNode);
-                    System.out.println(lr.getLearnedPhrase(learn1, learn2Neg, question));
+                    System.out.println(knowledgeTreeService.getLanguageRule().getLearnedPhrase(learn1, learn2Neg, question));
                 } else {
                     node.setNo(new Node(node.getData()));
                     node.setData(question);
                     node.setYes(secondNode);
-                    System.out.println(lr.getLearnedPhrase(learn1Neg, learn2, question));
+                    System.out.println(knowledgeTreeService.getLanguageRule().getLearnedPhrase(learn1Neg, learn2, question));
                 }
             }
         }
@@ -142,6 +136,18 @@ public class Game {
             return getLocalString("hi.day");
         } else {
             return getLocalString("hi.evening");
+        }
+    }
+
+    public static String getStatement(String first, String second) {
+        while (true) {
+            System.out.printf(getLocalString("specify"), first, second);
+            String response = SCANNER.nextLine().toLowerCase().trim();
+
+            if (response.matches(ResourceBundleService.PATTERN_STATEMENT)) {
+                return response.replaceFirst("(.+)\\.+", "$1");
+            }
+            System.out.printf(getLocalString("examples"));
         }
     }
 }
